@@ -259,32 +259,36 @@ body {{
   background: center / cover no-repeat url(data:image/jpeg;base64,{image_data});
   font-family: "Noto Sans Devanagari", sans-serif;
 }}
-.panel {{
-  position: absolute; left: 30px; top: 28px; width: 790px; height: 664px;
-  border: 3px solid #ffcd00; border-radius: 28px; background: #080c16;
-  padding: 26px 22px; color: white;
+.shade {{
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(19, 12, 3, .94) 0%, rgba(19, 12, 3, .84) 36%, rgba(19, 12, 3, .44) 53%, transparent 70%);
+}}
+.copy {{
+  position: absolute; left: 48px; top: 56px; width: 680px; height: 630px; color: white;
 }}
 .title {{
-  font-size: 78px; line-height: 1.22; font-weight: 900; color: #ffdc00;
-  text-shadow: 3px 4px 0 #000, -2px -2px 0 #111, 2px -2px 0 #111, -2px 2px 0 #111;
+  font-size: 108px; line-height: 1.12; font-weight: 900; color: #ffd21a;
+  -webkit-text-stroke: 2px #170e02;
+  text-shadow: 4px 6px 0 #170e02, 0 0 14px rgba(0, 0, 0, .9);
   white-space: nowrap;
 }}
-.rule {{ width: 150px; height: 8px; border-radius: 5px; background: #ffcd00; margin: 17px 0 23px; }}
-.hook {{
-  font-size: 59px; line-height: 1.35; font-weight: 900; color: white;
-  text-shadow: 3px 4px 0 #000, -2px -2px 0 #111, 2px -2px 0 #111, -2px 2px 0 #111;
+.subtitle {{
+  margin-top: 20px; font-size: 82px; line-height: 1.2; font-weight: 900;
+  color: #fff0bd; -webkit-text-stroke: 1.5px #241400;
+  text-shadow: 3px 5px 0 #170e02, 0 0 12px rgba(0, 0, 0, .9);
 }}
 .date {{
-  position: absolute; left: 18px; bottom: 14px; padding: 7px 18px 10px;
-  border-radius: 18px; border: 3px solid white; background: #1e1708;
-  color: #ffe100; font-size: 34px; line-height: 1.2; font-weight: 900;
-  text-shadow: 1px 2px 0 black;
+  position: absolute; left: 0; bottom: 0; padding: 9px 18px 13px;
+  border: 3px solid #fff4c9; border-radius: 17px; background: #fff0a8;
+  color: #541900; font-size: 35px; line-height: 1.2; font-weight: 900;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .55);
 }}
-</style></head><body><main class="panel">
+</style></head><body>
+<div class="shade"></div>
+<main class="copy">
   <div class="title">गोपाष्टमी 2026</div>
-  <div class="rule"></div>
-  <div class="hook">तिथि, कथा और पूजा</div>
-  <div class="date">१७ नवंबर 2026</div>
+  <div class="subtitle">पूजा विधि, कथा<br>कथा और महत्व</div>
+  <div class="date">17 नवंबर | गौ सेवा का पर्व</div>
 </main></body></html>""",
             wait_until="load",
         )
