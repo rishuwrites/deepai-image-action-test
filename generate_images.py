@@ -256,7 +256,7 @@ async def render_thumbnail_preview(browser, image_path: Path) -> None:
 html, body {{ margin: 0; width: 1280px; height: 720px; overflow: hidden; }}
 body {{
   position: relative;
-  background: center / cover no-repeat url(data:image/jpeg;base64,{image_data});
+  background: #170e02 right center / auto 100% no-repeat url(data:image/jpeg;base64,{image_data});
   font-family: "Noto Sans Devanagari", sans-serif;
 }}
 .shade {{
