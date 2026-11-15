@@ -2,6 +2,12 @@ name: Generate 20 images
 
 on:
   workflow_dispatch:
+    inputs:
+      prompt:
+        description: Optional single-image prompt (leave blank to run the sample set)
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -24,9 +30,13 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install playwright
           python -m playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install --yes fonts-noto-core
 
       - name: Generate images
         run: python generate_images.py
+        env:
+          IMAGE_PROMPT: ${{ inputs.prompt }}
 
       - name: Upload generated images and manifest
         if: always()

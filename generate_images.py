@@ -1,5 +1,7 @@
 import asyncio
+import base64
 import json
+import os
 import re
 from pathlib import Path
 
@@ -243,10 +245,61 @@ def is_block_page(text: str) -> bool:
     )
 
 
+async def render_thumbnail_preview(browser, image_path: Path) -> None:
+    image_data = base64.b64encode(image_path.read_bytes()).decode("ascii")
+    page = await browser.new_page(viewport={"width": 1280, "height": 720})
+    try:
+        await page.set_content(
+            f"""<!doctype html>
+<html><head><meta charset="utf-8"><style>
+* {{ box-sizing: border-box; }}
+html, body {{ margin: 0; width: 1280px; height: 720px; overflow: hidden; }}
+body {{
+  position: relative;
+  background: center / cover no-repeat url(data:image/jpeg;base64,{image_data});
+  font-family: "Noto Sans Devanagari", sans-serif;
+}}
+.panel {{
+  position: absolute; left: 30px; top: 28px; width: 790px; height: 664px;
+  border: 3px solid #ffcd00; border-radius: 28px; background: #080c16;
+  padding: 26px 22px; color: white;
+}}
+.title {{
+  font-size: 78px; line-height: 1.22; font-weight: 900; color: #ffdc00;
+  text-shadow: 3px 4px 0 #000, -2px -2px 0 #111, 2px -2px 0 #111, -2px 2px 0 #111;
+  white-space: nowrap;
+}}
+.rule {{ width: 150px; height: 8px; border-radius: 5px; background: #ffcd00; margin: 17px 0 23px; }}
+.hook {{
+  font-size: 59px; line-height: 1.35; font-weight: 900; color: white;
+  text-shadow: 3px 4px 0 #000, -2px -2px 0 #111, 2px -2px 0 #111, -2px 2px 0 #111;
+}}
+.date {{
+  position: absolute; left: 18px; bottom: 14px; padding: 7px 18px 10px;
+  border-radius: 18px; border: 3px solid white; background: #1e1708;
+  color: #ffe100; font-size: 34px; line-height: 1.2; font-weight: 900;
+  text-shadow: 1px 2px 0 black;
+}}
+</style></head><body><main class="panel">
+  <div class="title">गोपाष्टमी 2026</div>
+  <div class="rule"></div>
+  <div class="hook">तिथि, कथा और पूजा</div>
+  <div class="date">१७ नवंबर 2026</div>
+</main></body></html>""",
+            wait_until="load",
+        )
+        await page.evaluate("document.fonts.ready")
+        await page.screenshot(path=str(OUTPUT_DIR / "thumbnail-preview.png"))
+    finally:
+        await page.close()
+
+
 async def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     manifest_path = OUTPUT_DIR / "manifest.json"
     results: list[dict[str, str]] = []
+    custom_prompt = os.environ.get("IMAGE_PROMPT", "").strip()
+    prompts = [custom_prompt] if custom_prompt else PROMPTS
 
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch()
@@ -262,7 +315,7 @@ async def main() -> None:
                 raise RuntimeError(f"DeepAI page did not load successfully: {status}")
             await page.locator("#generate-textarea").wait_for(timeout=30_000)
 
-            for index, prompt in enumerate(PROMPTS, start=1):
+            for index, prompt in enumerate(prompts, start=1):
                 try:
                     body_text = await page.locator("body").inner_text(timeout=10_000)
                     if is_block_page(body_text):
@@ -329,7 +382,7 @@ async def main() -> None:
                     )
                     print(f"Generated {image_path.name} ({len(image_bytes)} bytes)")
 
-                    if index < len(PROMPTS):
+                    if index < len(prompts):
                         await page.wait_for_timeout(5_000)
                 except Exception as error:
                     results.append(
@@ -343,6 +396,12 @@ async def main() -> None:
                     print(f"Image {index} failed: {error}")
                     if is_block_page(await page.locator("body").inner_text()):
                         break
+
+            if custom_prompt and results and results[0]["status"] == "generated":
+                await render_thumbnail_preview(
+                    browser,
+                    OUTPUT_DIR / results[0]["file"],
+                )
         finally:
             manifest_path.write_text(
                 json.dumps(results, ensure_ascii=False, indent=2),
@@ -351,8 +410,8 @@ async def main() -> None:
             await browser.close()
 
     generated = sum(result["status"] == "generated" for result in results)
-    print(f"Generated {generated} of {len(PROMPTS)} requested images.")
-    if generated != len(PROMPTS):
+    print(f"Generated {generated} of {len(prompts)} requested images.")
+    if generated != len(prompts):
         raise SystemExit(1)
 
 
